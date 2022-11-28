@@ -1,6 +1,6 @@
 BINDIR=bin
-FULLNAME=webhook-relay-$@
-LDFLAGS="-s -w -X github.com/Bpazy/webhook-relay.buildVer=${VERSION}"
+FULLNAME=webhook-forwarder-$@
+LDFLAGS="-s -w -X github.com/Bpazy/webhook-forwarder.buildVer=${VERSION}"
 GOBUILD=go build -ldflags=${LDFLAGS}
 CMDPATH=.
 

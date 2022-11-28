@@ -1,4 +1,4 @@
-module github.com/Bpazy/webhook-relay
+module github.com/Bpazy/webhook-forwarder
 
 go 1.19
 
