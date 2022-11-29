@@ -4,6 +4,7 @@ Copyright © 2022 Bpazy
 package cmd
 
 import (
+	"github.com/Bpazy/berrors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"net/http"
@@ -19,13 +20,20 @@ var serveCmd = &cobra.Command{
 func serve() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		r := gin.Default()
-		r.GET("/ping", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "pong",
-			})
-		})
-		panic(r.Run(port))
+		r.GET("/ping", ping)
+		r.GET("/forward/:name", forward)
+		berrors.Must(r.Run(port))
 	}
+}
+
+func ping(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
+}
+
+func forward(c *gin.Context) {
+	_ = c.Param("name")
 }
 
 var port string

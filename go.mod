@@ -3,6 +3,7 @@ module github.com/Bpazy/webhook-forwarder
 go 1.19
 
 require (
+	github.com/Bpazy/berrors v0.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.8.1 // indirect
