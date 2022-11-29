@@ -4,3 +4,15 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bpazy/webhook-forwarder)](https://goreportcard.com/report/github.com/Bpazy/webhook-forwarder)
 
 Forward the webhook request.
+
+Templates:
+```js
+function convert(origin) {
+    return {
+        target: "https://www.baidu.com",
+        payload: {
+            "hello": origin.name,
+        }
+    }
+}
+```

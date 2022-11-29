@@ -4,10 +4,12 @@ Copyright © 2022 Bpazy
 package cmd
 
 import (
+	"encoding/json"
 	berrors "github.com/Bpazy/berrors"
 	"github.com/gin-gonic/gin"
 	"github.com/robertkrimen/otto"
 	"github.com/spf13/cobra"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,8 +25,9 @@ var serveCmd = &cobra.Command{
 func serve() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		r := gin.Default()
-		r.GET("/ping", ping)
-		r.GET("/forward/:name", forward)
+		r.Any("/ping", ping)
+		r.Any("/mirror", mirror)
+		r.Any("/forward/:name", forward)
 		berrors.Must(r.Run(port))
 	}
 }
@@ -33,6 +36,12 @@ func ping(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
+}
+
+func mirror(c *gin.Context) {
+	r := gin.H{}
+	berrors.Must(json.Unmarshal(berrors.Unwrap(io.ReadAll(c.Request.Body)), &r))
+	c.JSON(http.StatusOK, r)
 }
 
 func forward(c *gin.Context) {
@@ -46,9 +55,20 @@ func forward(c *gin.Context) {
 		}
 
 		vm := otto.New()
-		b := berrors.Unwrap(os.ReadFile(filepath.Join(templatesPath, dir.Name())))
-		v := berrors.Unwrap(vm.Run(string(b)))
-		c.JSON(http.StatusOK, v)
+		_ = berrors.Unwrap(vm.Run(string(berrors.Unwrap(os.ReadFile(filepath.Join(templatesPath, dir.Name()))))))
+
+		r := gin.H{}
+		requestBody := berrors.Unwrap(io.ReadAll(c.Request.Body))
+		var convertValue any
+		if err := json.Unmarshal(requestBody, &r); err != nil {
+			convertValue = berrors.Unwrap(vm.Call("convert", nil, requestBody))
+		} else {
+			convertValue = berrors.Unwrap(vm.Call("convert", nil, r))
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"sourcePayload": r,
+			"convertValue":  convertValue,
+		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{})
