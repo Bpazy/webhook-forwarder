@@ -43,7 +43,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.webhook-forwarder.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/webhook-forwarder/config.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -57,9 +57,9 @@ func initConfig() {
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".webhook-forwarder" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(home + "/.config/webhook-forwarder")
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".webhook-forwarder")
+		viper.SetConfigName("config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
