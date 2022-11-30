@@ -1,7 +1,7 @@
 BINDIR=bin
 FULLNAME=webhook-forwarder-$@
 LDFLAGS="-s -w -X github.com/Bpazy/webhook-forwarder.buildVer=${VERSION}"
-GOBUILD=go build -ldflags=${LDFLAGS}
+GOBUILD=CGO_ENABLED=0 go build -ldflags=${LDFLAGS}
 CMDPATH=.
 
 all: linux-amd64 darwin-amd64 windows-amd64 # Most used
