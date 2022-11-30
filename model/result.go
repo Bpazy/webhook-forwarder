@@ -1,21 +1,21 @@
 package model
 
-type Result[T any] struct {
+type Result struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
-	Data    T      `json:"data"`
+	Data    any    `json:"data"`
 }
 
-func NewSuccessResult[T any](data T) Result[T] {
-	return Result[T]{
+func NewSuccessResult(data any) Result {
+	return Result{
 		Success: true,
 		Data:    data,
 		Message: "",
 	}
 }
 
-func NewFailedResult(message string) Result[any] {
-	return Result[any]{
+func NewFailedResult(message string) Result {
+	return Result{
 		Success: false,
 		Data:    nil,
 		Message: message,
