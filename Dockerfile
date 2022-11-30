@@ -6,7 +6,7 @@ WORKDIR /webhook-forwarder
 RUN go env && make linux-amd64
 
 FROM ubuntu:latest AS production
-ENV PORT 8080
+ENV PORT ":8080"
 COPY --from=development /etc/ssl /etc/ssl
 COPY --from=development /webhook-forwarder/bin/webhook-forwarder-linux-amd64 /webhook-forwarder/bin/webhook-forwarder
 WORKDIR /webhook-forwarder/bin
