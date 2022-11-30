@@ -59,7 +59,7 @@ func forward(c *gin.Context) {
 }
 
 func doForward(name string, requestBody []byte) error {
-	log.Info("Got template name: %s", name)
+	log.Infof("Got template name: %s", name)
 	templatesPath := getTemplatePath()
 	if err := checkTemplateName(templatesPath, name); err != nil {
 		return err
@@ -89,7 +89,7 @@ func doForward(name string, requestBody []byte) error {
 	res, err := client.R().
 		SetBody(payload).
 		Post(targetUrl.String())
-	log.Info("Got response: %s", res.String())
+	log.Infof("Got response: %s", res.String())
 	if err != nil {
 		return fmt.Errorf("forward request to %s failed: %+v", targetUrl.String(), err)
 	}
