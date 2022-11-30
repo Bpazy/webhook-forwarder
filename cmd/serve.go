@@ -68,6 +68,7 @@ func doForward(name string, requestBody []byte) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("Got forwarding body: %s", string(requestBody))
 	convertValue, err := runJs(string(fileBody), requestBody)
 	if err != nil {
 		return err
