@@ -52,6 +52,7 @@ func mirror(c *gin.Context) {
 func forward(c *gin.Context) {
 	err := doForward(c.Param("name"), berrors.Unwrap(io.ReadAll(c.Request.Body)))
 	if err != nil {
+		log.Errorf("doForward error: %+v", err)
 		c.JSON(http.StatusOK, model.NewFailedResult(err.Error()))
 		return
 	}
