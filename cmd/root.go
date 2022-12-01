@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"os"
 
@@ -59,6 +60,10 @@ func initLog() {
 	log.SetOutput(os.Stdout)
 	if verbose {
 		log.SetLevel(log.DebugLevel)
+		gin.SetMode(gin.DebugMode)
+	} else {
+		log.SetLevel(log.InfoLevel)
+		gin.SetMode(gin.ReleaseMode)
 	}
 }
 
