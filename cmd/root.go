@@ -58,6 +58,9 @@ func onInitialize() {
 
 func initLog() {
 	log.SetOutput(os.Stdout)
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
 	if verbose {
 		log.SetLevel(log.DebugLevel)
 		gin.SetMode(gin.DebugMode)

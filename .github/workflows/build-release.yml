@@ -1,7 +1,9 @@
 on:
   release:
     types: [published]
-
+  push:
+    tags:
+      - '*'
 name: Handle Release
 
 jobs:
@@ -21,3 +23,4 @@ jobs:
           file: bin/*
           overwrite: true
           file_glob: true
+          tag: ${{ github.ref }}

@@ -32,6 +32,7 @@ func serve() func(cmd *cobra.Command, args []string) {
 		r := gin.New()
 		r.Use(gin.Recovery())
 		r.Any("/forward/:name", forward)
+		log.Infof("Serving on %s", port)
 		berrors.Must(r.Run(port))
 	}
 }
