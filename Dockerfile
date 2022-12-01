@@ -6,4 +6,4 @@ RUN go env && make linux-amd64
 FROM ubuntu:latest AS production
 COPY entrypoint.sh /usr/local/bin
 COPY --from=development /webhook-forwarder/bin/webhook-forwarder-linux-amd64 /usr/local/bin/webhook-forwarder
-ENTRYPOINT entrypoint.sh
+ENTRYPOINT sh /usr/local/bin/entrypoint.sh
