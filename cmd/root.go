@@ -18,13 +18,12 @@ package cmd
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -41,12 +40,28 @@ func Execute() {
 	}
 }
 
+var cfgFile string
+var verbose bool
+
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(onInitialize)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/webhook-forwarder/config.yaml)")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "print verbose log")
 }
 
-// initConfig reads in config file and ENV variables if set.
+// onInitialize reads in config file and ENV variables if set.
+func onInitialize() {
+	initLog()
+	initConfig()
+}
+
+func initLog() {
+	log.SetOutput(os.Stdout)
+	if verbose {
+		log.SetLevel(log.DebugLevel)
+	}
+}
+
 func initConfig() {
 	if cfgFile != "" {
 		// Use config file from the flag.

@@ -31,23 +31,9 @@ func serve() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		r := gin.New()
 		r.Use(gin.Recovery())
-		r.Any("/ping", ping)
-		r.Any("/mirror", mirror)
 		r.Any("/forward/:name", forward)
 		berrors.Must(r.Run(port))
 	}
-}
-
-func ping(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
-}
-
-func mirror(c *gin.Context) {
-	r := gin.H{}
-	berrors.Must(json.Unmarshal(berrors.Unwrap(io.ReadAll(c.Request.Body)), &r))
-	c.JSON(http.StatusOK, r)
 }
 
 func forward(c *gin.Context) {
@@ -61,7 +47,7 @@ func forward(c *gin.Context) {
 }
 
 func doForward(name string, requestBody []byte) error {
-	log.Infof("Got template name: %s", name)
+	log.Debugf("Got template name: %s", name)
 	templatesPath := getTemplatePath()
 	if err := checkTemplateName(templatesPath, name); err != nil {
 		return err
@@ -70,7 +56,7 @@ func doForward(name string, requestBody []byte) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("Got forwarding body: %s", string(requestBody))
+	log.Debugf("Got forwarding body: %s", string(requestBody))
 	convertValue, err := runJs(string(fileBody), requestBody)
 	if err != nil {
 		return err
@@ -92,7 +78,7 @@ func doForward(name string, requestBody []byte) error {
 	res, err := client.R().
 		SetBody(payload).
 		Post(targetUrl.String())
-	log.Infof("Got response: %s", res.String())
+	log.Debugf("Got response: %s", res.String())
 	if err != nil {
 		return fmt.Errorf("forward request to %s failed: %+v", targetUrl.String(), err)
 	}
