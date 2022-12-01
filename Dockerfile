@@ -10,4 +10,4 @@ ENV PORT ":8080"
 COPY --from=development /etc/ssl /etc/ssl
 COPY --from=development /webhook-forwarder/bin/webhook-forwarder-linux-amd64 /webhook-forwarder/bin/webhook-forwarder
 WORKDIR /webhook-forwarder/bin
-ENTRYPOINT ./webhook-forwarder serve --port $PORT --verbose
+ENTRYPOINT ["./webhook-forwarder", "serve", "--port", "echo $PORT", "--verbose"]
