@@ -29,7 +29,8 @@ var serveCmd = &cobra.Command{
 
 func serve() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		r := gin.Default()
+		r := gin.New()
+		r.Use(gin.Recovery())
 		r.Any("/ping", ping)
 		r.Any("/mirror", mirror)
 		r.Any("/forward/:name", forward)
