@@ -37,9 +37,9 @@ Now you can use `webhook-forwarder` to receive and redirect and modify the webho
 function convert(origin) {
     alert = origin.alerts[0];
     return {
-        target: ["https://api.day.app/asd/", "https://api.day.app/123/"],
+        target: ["https://api.day.app/asd/"],
         payload: {
-            title: "[" + alert.status + "] " + alert.labels.alertname,
+            title: alert.labels.alertname,
             body: "",
         }
     }
