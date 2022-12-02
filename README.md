@@ -7,14 +7,43 @@
 
 Forward the webhook request.
 
-Templates:
-```js
-function convert(origin) {
-    return {
-        target: "https://www.baidu.com",
-        payload: {
-            "hello": origin.name,
+![webhook-forwarder (2)](https://user-images.githubusercontent.com/9838749/205377219-5e0db1d2-6975-43c3-8239-1da1388485cf.png)
+
+## Usage
+I suppose your webhook request body looks like this:
+```json
+{
+    "alerts":[
+        {
+            "status":"resolved",
+            "labels":{
+                "alertname":"325i alert"
+            }
         }
-    }
+    ]
 }
 ```
+And your backend struct like:
+```json
+{
+    "body":"Test Bark Server",
+    "title":"bleem"
+}
+```
+
+Now you can use `webhook-forwarder` to receive and redirect and modify the webhook request like this:
+```js
+// ~/.config/webhook-forwarder/test.js
+function convert(origin) {
+    alert = origin.alerts[0];
+    return {
+        target: ["https://api.day.app/asd/", "https://api.day.app/123/"],
+        payload: {
+            title: "[" + alert.status + "] " + alert.labels.alertname,
+            body: "",
+        }
+    }
+};
+```
+
+Finally your backend will got correct body.
