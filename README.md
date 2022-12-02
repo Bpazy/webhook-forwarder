@@ -23,7 +23,7 @@ I suppose your webhook request body looks like this:
     ]
 }
 ```
-And your backend struct like:
+And your backend wanted:
 ```json
 {
     "body":"Test Bark Server",
