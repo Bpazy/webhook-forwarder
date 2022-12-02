@@ -47,3 +47,18 @@ function convert(origin) {
 ```
 
 Finally your backend will got correct body.
+
+## Docker Deploy
+```yaml
+version: '3'
+services:
+  webhook-forwarder:
+    image: ghcr.io/bpazy/webhook-forwarder:master
+    environment:
+      - PORT=:8080
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/ubuntu/webhook-forwarder/templates:/root/.config/webhook-forwarder/templates
+```
