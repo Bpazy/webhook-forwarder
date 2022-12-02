@@ -52,7 +52,11 @@ func forward(c *gin.Context) {
 
 func doForward(name string, forwardBody []byte) error {
 	log.Debugf("Requesting template name: %s, forwarding: %s", name, string(forwardBody))
-	t, err := template.New(name, forwardBody)
+	content, err := template.GetTemplateContent(name)
+	if err != nil {
+		return err
+	}
+	t, err := template.New(content, forwardBody)
 	if err != nil {
 		return err
 	}
@@ -60,17 +64,19 @@ func doForward(name string, forwardBody []byte) error {
 	if err != nil {
 		return err
 	}
-	return doRequest(r, err)
+	return doRequest(r)
 }
 
-func doRequest(r *template.JsResult, err error) error {
-	client := resty.New()
-	res, err := client.R().
-		SetBody(r.Payload).
-		Post(r.Target)
-	log.Debugf("Got forward response: %s", res.String())
-	if err != nil {
-		return fmt.Errorf("forward request to %s failed: %+v", r.Target, err)
+func doRequest(r *template.JsResult) error {
+	for _, target := range r.Targets {
+		client := resty.New()
+		res, err := client.R().
+			SetBody(r.Payload).
+			Post(target)
+		log.Debugf("Got forward response: %s", res.String())
+		if err != nil {
+			return fmt.Errorf("forward request to %s failed: %+v", target, err)
+		}
 	}
 	return nil
 }

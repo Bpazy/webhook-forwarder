@@ -15,20 +15,30 @@ type Template struct {
 	forwardBody []byte
 }
 
-// New return Template instance
-func New(templateName string, forwardBody []byte) (*Template, error) {
+func GetTemplateContent(templateName string) (string, error) {
 	templatesPath := getTemplatePath()
 	if err := checkTemplateName(templatesPath, templateName); err != nil {
-		return nil, err
+		return "", err
 	}
-	fileBody, err := os.ReadFile(filepath.Join(templatesPath, templateName))
+	content, err := os.ReadFile(filepath.Join(templatesPath, templateName))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	return string(content), nil
+}
+
+// New return Template instance
+func New(js string, forwardBody []byte) (*Template, error) {
 	return &Template{
-		body:        string(fileBody),
+		body:        js,
 		forwardBody: forwardBody,
 	}, nil
+}
+
+func getTemplatePath() string {
+	userHomeDir := berrors.Unwrap(os.UserHomeDir())
+	templatesPath := filepath.Join(userHomeDir, "/.config/webhook-forwarder/templates")
+	return templatesPath
 }
 
 func checkTemplateName(templatesPath string, name string) error {
@@ -41,15 +51,9 @@ func checkTemplateName(templatesPath string, name string) error {
 	return fmt.Errorf("no template named %s", name)
 }
 
-func getTemplatePath() string {
-	userHomeDir := berrors.Unwrap(os.UserHomeDir())
-	templatesPath := filepath.Join(userHomeDir, "/.config/webhook-forwarder/templates")
-	return templatesPath
-}
-
 // JsResult created after Template.RunJs
 type JsResult struct {
-	Target  string
+	Targets []string
 	Payload any
 }
 
@@ -63,14 +67,20 @@ func (t Template) RunJs() (*JsResult, error) {
 	r := gin.H{}
 	var convertValue otto.Value
 	if err := json.Unmarshal(t.forwardBody, &r); err != nil {
-		convertValue = berrors.Unwrap(vm.Call("convert", nil, t.forwardBody))
+		convertValue, err = vm.Call("convert", nil, t.forwardBody)
+		if err != nil {
+			return nil, fmt.Errorf("call js function 'convert' error: %+v", err)
+		}
 	} else {
-		convertValue = berrors.Unwrap(vm.Call("convert", nil, r))
+		convertValue, err = vm.Call("convert", nil, r)
+		if err != nil {
+			return nil, fmt.Errorf("call js function 'convert' error: %+v", err)
+		}
 	}
 	if !convertValue.IsObject() {
 		return nil, fmt.Errorf("js template incorrent")
 	}
-	target, err := getTarget(&convertValue)
+	targets, err := getTargets(&convertValue)
 	if err != nil {
 		return nil, err
 	}
@@ -78,15 +88,27 @@ func (t Template) RunJs() (*JsResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &JsResult{target, payload}, nil
+	return &JsResult{targets, payload}, nil
 }
 
-func getTarget(v *otto.Value) (string, error) {
+var UnsupportedTargetType = fmt.Errorf("unsupported target type")
+
+func getTargets(v *otto.Value) ([]string, error) {
 	v2, err := v.Object().Get("target")
 	if err != nil {
-		return "", fmt.Errorf("get value from otto object failed: %+v", err)
+		return []string{}, fmt.Errorf("get target from otto object failed: %+v", err)
 	}
-	return v2.String(), nil
+	i, err := v2.Export()
+	if err != nil {
+		return []string{}, fmt.Errorf("get target from otto object failed: %+v", err)
+	}
+	switch i.(type) {
+	case string:
+		return []string{i.(string)}, nil
+	case []string:
+		return i.([]string), nil
+	}
+	return []string{}, UnsupportedTargetType
 }
 
 func GetObject(v *otto.Value) (any, error) {
