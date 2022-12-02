@@ -4,14 +4,13 @@ Copyright © 2022 Bpazy
 package cmd
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Bpazy/berrors"
 	"github.com/Bpazy/webhook-forwarder/model"
+	"github.com/Bpazy/webhook-forwarder/util"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"github.com/robertkrimen/otto"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io"
@@ -47,7 +46,7 @@ func forward(c *gin.Context) {
 	c.JSON(http.StatusOK, model.NewSuccessResult(nil))
 }
 
-func doForward(name string, requestBody []byte) error {
+func doForward(name string, forwardBody []byte) error {
 	log.Debugf("Got template name: %s", name)
 	templatesPath := getTemplatePath()
 	if err := checkTemplateName(templatesPath, name); err != nil {
@@ -57,52 +56,33 @@ func doForward(name string, requestBody []byte) error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("Got forwarding body: %s", string(requestBody))
-	convertValue, err := runJs(string(fileBody), requestBody)
+	log.Debugf("Got forwarding body: %s", string(forwardBody))
+	t := util.NewTemplate(string(fileBody), forwardBody)
+	runResult, err := t.RunJs()
 	if err != nil {
 		return err
 	}
-	object := convertValue.Object()
-	targetUrl, err := object.Get("target")
+	return doRequest(runResult, err)
+}
+
+func doRequest(runResult *util.RunResult, err error) error {
+	targetUrl, err := runResult.GetString("target")
 	if err != nil {
-		return fmt.Errorf("template return target incorrent: %+v", err)
+		return err
 	}
-	payloadValue, err := object.Get("payload")
+	payload, err := runResult.GetObject("payload")
 	if err != nil {
-		return fmt.Errorf("template return payload incorrent: %+v", err)
-	}
-	payload, err := payloadValue.Export()
-	if err != nil {
-		return fmt.Errorf("template return payload incorrent: %+v", err)
+		return err
 	}
 	client := resty.New()
 	res, err := client.R().
 		SetBody(payload).
-		Post(targetUrl.String())
+		Post(targetUrl)
 	log.Debugf("Got response: %s", res.String())
 	if err != nil {
-		return fmt.Errorf("forward request to %s failed: %+v", targetUrl.String(), err)
+		return fmt.Errorf("forward request to %s failed: %+v", targetUrl, err)
 	}
 	return nil
-}
-
-func runJs(js string, requestBody []byte) (*otto.Value, error) {
-	vm := otto.New()
-	if _, err := vm.Run(js); err != nil {
-		return nil, err
-	}
-
-	r := gin.H{}
-	var convertValue otto.Value
-	if err := json.Unmarshal(requestBody, &r); err != nil {
-		convertValue = berrors.Unwrap(vm.Call("convert", nil, requestBody))
-	} else {
-		convertValue = berrors.Unwrap(vm.Call("convert", nil, r))
-	}
-	if !convertValue.IsObject() {
-		return nil, fmt.Errorf("js template incorrent: %s", js)
-	}
-	return &convertValue, nil
 }
 
 func checkTemplateName(templatesPath string, name string) error {
