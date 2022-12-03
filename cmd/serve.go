@@ -68,8 +68,8 @@ func doForward(name string, forwardBody []byte) error {
 }
 
 func doRequest(r *template.JsResult) error {
+	client := resty.New()
 	for _, target := range r.Targets {
-		client := resty.New()
 		res, err := client.R().
 			SetBody(r.Payload).
 			Post(target)
