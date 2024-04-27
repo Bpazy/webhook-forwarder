@@ -1,4 +1,5 @@
 # webhook-forwarder
+
 [![Build](https://github.com/Bpazy/webhook-forwarder/workflows/Build/badge.svg)](https://github.com/Bpazy/webhook-forwarder/actions/workflows/build.yml)
 [![Test](https://github.com/Bpazy/webhook-forwarder/workflows/Test/badge.svg)](https://github.com/Bpazy/webhook-forwarder/actions/workflows/test.yml)
 [![Docker](https://github.com/Bpazy/webhook-forwarder/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/Bpazy/webhook-forwarder/actions/workflows/docker-publish.yml)
@@ -10,28 +11,33 @@ Forward the webhook request.
 ![webhook-forwarder (2)](https://user-images.githubusercontent.com/9838749/205377219-5e0db1d2-6975-43c3-8239-1da1388485cf.png)
 
 ## Usage
+
 I suppose your webhook request body looks like this:
+
 ```json
 {
-    "alerts":[
-        {
-            "status":"resolved",
-            "labels":{
-                "alertname":"325i alert"
-            }
-        }
-    ]
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "325i alert"
+      }
+    }
+  ]
 }
 ```
+
 And your backend wanted:
+
 ```json
 {
-    "body":"Test Bark Server",
-    "title":"bleem"
+  "body": "Test Bark Server",
+  "title": "bleem"
 }
 ```
 
 Now you can use `webhook-forwarder` to receive and redirect and modify the webhook request like this:
+
 ```js
 // ~/.config/webhook-forwarder/test.js
 function convert(origin) {
@@ -47,8 +53,14 @@ function convert(origin) {
 ```
 
 Finally your backend will got correct body.
+> Replace `:name` with the name of the file in the `templates` directory.
+
+```sh 
+curl -X POST http://localhost:8080/forward/:name -d '{"alerts":[{"status":"resolved","labels":{"alertname":"325i alert"}}]}'
+```
 
 ## Docker Deploy
+
 ```yaml
 version: '3'
 services:
