@@ -12,6 +12,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	tem "html/template"
 	"io"
 	"net/http"
 )
@@ -30,11 +31,28 @@ var serveCmd = &cobra.Command{
 	Run:   serve(),
 }
 
+var homePageHtml = tem.Must(tem.New("homePageHtml").Parse(`
+<html>
+<head>
+  <title>webhook-forwarder</title>
+</head>
+<body>
+  <span>Here is <a href="https://github.com/Bpazy/webhook-forwarder">webhook-forwarder</a></span>
+</body>
+</html>
+`))
+
 func serve() func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		r := gin.New()
 		r.Use(gin.Recovery())
+
+		r.SetHTMLTemplate(homePageHtml)
+		r.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "homePageHtml", nil)
+		})
 		r.Any("/forward/:name", forward)
+
 		log.Infof("Serving on %s", port)
 		berrors.Must(r.Run(port))
 	}
